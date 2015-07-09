@@ -1,0 +1,20 @@
+# Compiled Object Files
+*.o
+
+# Helper manuals
+*.pdf
+*.ps
+*.html
+*.tt
+
+# Other files
+*.log
+*.out
+*.err
+
+# folders
+misc/
+score/
+submit/
+
+# Compiled executable
