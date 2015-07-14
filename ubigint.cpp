@@ -79,7 +79,6 @@ udigit_t itod(int digit){
    return '0' + digit;
 }
 
-
 /**
  * Helper function for plus operator to add two digits together. Returns
  * a pair, which has a udigit_t to act as the result, and a boolean to
@@ -173,6 +172,10 @@ ubigint ubigint::operator+ (const ubigint& that) const {
 
    // fill in the rest of the larger digit
    while (large_it != larger.end()){
+      // reference to make
+      udigit_t curr = large_it*
+
+      // making sure the last carry takes place
       if (carry){
 
       }
