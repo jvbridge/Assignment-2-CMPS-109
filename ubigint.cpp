@@ -10,7 +10,7 @@ using namespace std;
 #include "debug.h"
 
 ubigint::ubigint (unsigned long that): uvalue (that) {
-   DEBUGF ('~', this << " -> " << uvalue)
+   DEBUGF ('~', this << " -> " << uvalue);
 }
 
 ubigint::ubigint (const string& that): uvalue(0) {
@@ -77,7 +77,6 @@ bool ubigint::operator< (const ubigint& that) const {
    return uvalue < that.uvalue;
 }
 
-ostream& operator<< (ostream& out, const ubigint& that) { 
+ostream& operator<< (ostream& out, const ubigint& that) {
    return out << "ubigint(" << that.uvalue << ")";
 }
-
