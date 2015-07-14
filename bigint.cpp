@@ -26,9 +26,6 @@ bigint::bigint (const string& that) {
    uvalue = ubigint (that.substr (is_negative ? 1 : 0));
 }
 
-/*
-Here is where the operators are defined. We define
- */
 bigint bigint::operator+() const {
    return *this;
 }
@@ -38,30 +35,79 @@ bigint bigint::operator-() const {
 }
 
 bigint bigint::operator+ (const bigint& that) const {
-   ubigint result = uvalue + that.uvalue;
-   return result;
-   // test
+
+   // variable declaration for the return type;
+   ubigint result;
+
+   // if they're the same sign, then it doesn't matter whether they're
+   // positive or negative, just return them added and keep the sign
+   if (is_negative == that.is_negative){
+      result = uvalue + that.uvalue;
+      return {result, is_negative};
+   }
+
+   // subtract the larger uvalue from the smaller one, and return the
+   // sign of the one further from zero
+   if(uvalue > that.uvalue){
+      result = uvalue - that.uvalue;
+      return {result, is_negative};
+   }
+   if (uvalue < that.uvalue){
+      result = that.uvalue - uvalue;
+      return {result, that.is_negative};
+   }
+
+   // if they are of equal magnitude then return zero
+   result = uvalue - that.uvalue;
+   return {result, false};
+
 }
 
 bigint bigint::operator- (const bigint& that) const {
-   ubigint result = uvalue - that.uvalue;
-   return result;
+
+   // variable declaration for the return type;
+   ubigint result;
+
+   // if their signs are opposite, then it's just addition
+   if (is_negative != that.is_negative){
+      result = uvalue + that.uvalue;
+      return {result, is_negative};
+   }
+
+   // subtract the larger uvalue from the smaller one. Sign is
+   // determined by whether or not lvalue is larger.
+   if(uvalue > that.uvalue){
+      result = uvalue - that.uvalue;
+      return {result, is_negative};
+   }
+   if (uvalue < that.uvalue){
+      result = that.uvalue - uvalue;
+      return {result, !is_negative};
+   }
+
+   // if they are of equal magnitude then return zero
+   result = uvalue - that.uvalue;
+   return {result, false};
 }
 
 bigint bigint::operator* (const bigint& that) const {
-   bigint result = uvalue * that.uvalue;
-   return result;
+   // result is always multiplied
+   ubigint result = uvalue * that.uvalue;
+
+   // if signs are the same, the result is positive. Otherwise it's
+   // negative
+   return {result, is_negative != that.is_negative};
 }
 
-
+// pretty much the same deal as *
 bigint bigint::operator/ (const bigint& that) const {
-   bigint result = uvalue / that.uvalue;
-   return result;
+   ubigint result = uvalue / that.uvalue;
+   return {result, is_negative != that.is_negative};
 }
 
 bigint bigint::operator% (const bigint& that) const {
-   bigint result = uvalue % that.uvalue;
-   return result;
+   ubigint result = uvalue % that.uvalue;
+   return {result, is_negative};
 }
 
 bool bigint::operator== (const bigint& that) const {
@@ -84,4 +130,34 @@ ostream& operator<< (ostream& out, const bigint& that) {
    // check if it's negative, then add the container
    return out << "bigint(" << (that.is_negative ? "'-'" : "'+'")
               << that.uvalue << ")";
+}
+
+
+//////////////////
+// MY OPERATORS //
+//////////////////
+
+// note: I could have defined them as the others but I was getting
+// syntax errors from it so I gave up and just used the same sort of
+// implmentation that mackey used
+bool bigint::operator!= (const bigint& that) const {
+   return is_negative != that.is_negative or uvalue != that.uvalue;
+}
+
+bool bigint::operator<= (const bigint& that) const{
+   if (is_negative != that.is_negative) return is_negative;
+   return is_negative ? uvalue >= that.uvalue
+                      : uvalue <= that.uvalue;
+}
+
+bool bigint::operator> (const bigint& that) const{
+   if (is_negative != that.is_negative) return !is_negative;
+   return is_negative ? uvalue < that.uvalue
+                      : uvalue > that.uvalue;
+}
+
+bool bigint::operator>= (const bigint& that) const{
+   if (is_negative != that.is_negative) return !is_negative;
+   return is_negative ? uvalue <= that.uvalue
+                      : uvalue >= that.uvalue;
 }
