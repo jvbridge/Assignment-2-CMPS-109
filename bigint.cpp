@@ -137,27 +137,18 @@ ostream& operator<< (ostream& out, const bigint& that) {
 // MY OPERATORS //
 //////////////////
 
-// note: I could have defined them as the others but I was getting
-// syntax errors from it so I gave up and just used the same sort of
-// implmentation that mackey used
 bool bigint::operator!= (const bigint& that) const {
-   return is_negative != that.is_negative or uvalue != that.uvalue;
+   return !(*this == that);
 }
 
 bool bigint::operator<= (const bigint& that) const{
-   if (is_negative != that.is_negative) return is_negative;
-   return is_negative ? uvalue >= that.uvalue
-                      : uvalue <= that.uvalue;
+   return (*this == that || *this < that);
 }
 
 bool bigint::operator> (const bigint& that) const{
-   if (is_negative != that.is_negative) return !is_negative;
-   return is_negative ? uvalue < that.uvalue
-                      : uvalue > that.uvalue;
+   return !(*this <= that);
 }
 
 bool bigint::operator>= (const bigint& that) const{
-   if (is_negative != that.is_negative) return !is_negative;
-   return is_negative ? uvalue <= that.uvalue
-                      : uvalue >= that.uvalue;
+   return !(*this < that);
 }
