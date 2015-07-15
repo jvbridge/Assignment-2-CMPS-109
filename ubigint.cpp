@@ -11,6 +11,7 @@ using udigit_t = unsigned char;
 
 #include "ubigint.h"
 #include "debug.h"
+#include "general.h"
 
 ///////////////////
 // CONSTRUCTORS  //
@@ -57,7 +58,7 @@ ubigint::ubigint(ubigvalue_t that): ubig_value(that){
  * @param  digit  the digit to convert
  * @return          integer value of digit
  */
-int ubigint::dtoi(udigit_t digit){
+int dtoi(udigit_t digit){
    return digit - 0;
 }
 
@@ -67,7 +68,7 @@ int ubigint::dtoi(udigit_t digit){
  * @pre    int must be at least 0 and at most 9
  * @return          digit with value of integer
  */
-udigit_t ubigint::itod(int digit){
+udigit_t itod(int digit){
 
    // error handling
    if (digit < 0){
@@ -116,10 +117,10 @@ pair<bool, udigit_t> add_digit(udigit_t first_digit,
    // char and carry as true
    if (ret >= 10){
       ret = ret - 10;
-      ret_digit = itod(ret);
+      udigit_t ret_digit = itod(ret);
       return make_pair(true, ret_digit);
    }
-   ret_digit = itod(ret);
+   udigit_t ret_digit = itod(ret);
    return make_pair(false, ret_digit);
 }
 
@@ -174,21 +175,26 @@ ubigint ubigint::operator+ (const ubigint& that) const {
    // fill in the rest of the larger digit
    while (large_it != larger.end()){
       // reference to make
-      udigit_t curr = large_it*
+      udigit_t curr = *large_it;
 
-      // making sure the last carry takes place
+      // carries can still happen from the last addition, ex 999+99
       if (carry){
+         // add one to the current digit
+         pair<bool, udigit_t> tmp = add_digit(curr, '1', false);
 
+         // set carry to the new value
+         carry = tmp.first;
+         curr = tmp.second;
       }
 
+      // push it to the larger one
+      ret.push_back(curr);
 
    }
 
-   // if they're the same size, and we need to carry one over, add one
-   // to the end of the vector
-   // note: previous while loop should have broken instantly if they're
-   // the same size
-   if (smaller.size() == larger.size() && carry){
+   // if after all that iteration we still have a carry, push a 1 onto
+   // the end of the vector
+   if (carry){
       ret.push_back('1');
    }
 
@@ -260,7 +266,7 @@ ostream& operator<< (ostream& out, const ubigint& that) {
  * small helper function that tells whether or not the number is zero
  * @return true if the ubigint is zero, false otherwise
  */
-bool ubigint::is_zero(){
+bool ubigint::is_zero() const{
    if (ubig_value.size() == 0) return true;
    return false;
 }
