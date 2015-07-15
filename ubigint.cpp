@@ -7,6 +7,7 @@
 #include <string> // needed for string manipulation
 #include <sstream> // needed to stream strings
 using namespace std;
+using udigit_t = unsigned char;
 
 #include "ubigint.h"
 #include "debug.h"
@@ -56,7 +57,7 @@ ubigint::ubigint(ubigvalue_t that): ubig_value(that){
  * @param  digit  the digit to convert
  * @return          integer value of digit
  */
-int dtoi(udigit_t digit){
+int ubigint::dtoi(udigit_t digit){
    return digit - 0;
 }
 
@@ -66,7 +67,7 @@ int dtoi(udigit_t digit){
  * @pre    int must be at least 0 and at most 9
  * @return          digit with value of integer
  */
-udigit_t itod(int digit){
+udigit_t ubigint::itod(int digit){
 
    // error handling
    if (digit < 0){

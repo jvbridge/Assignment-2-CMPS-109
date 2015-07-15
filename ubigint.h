@@ -22,6 +22,13 @@ class ubigint {
       quot_rem divide (const ubigint&) const;
       void multiply_by_2();
       void divide_by_2();
+
+      /////////////////////////////
+      // privat helper functions //
+      /////////////////////////////
+      int dtoi(udigit_t);
+      udigit_t itod(int);
+
    public:
 
       ubigint() = default; // Need default ctor as well.
