@@ -11,7 +11,7 @@ using udigit_t = unsigned char;
 
 #include "ubigint.h"
 #include "debug.h"
-#include "general.h"
+#include "general.h" // included for the exception
 
 ///////////////////
 // CONSTRUCTORS  //
@@ -45,16 +45,15 @@ ubigint::ubigint (const string& that) {
 }
 
 // TODO TEST!
-ubigint::ubigint(ubigvalue_t that): ubig_value(that){
-
-}
+ubigint::ubigint(ubigvalue_t that): ubig_value(that){}
 
 //////////////////////
 // Helper functions //
 //////////////////////
 
 /**
- * Convert a digit to an integer. Simple helper function.
+ * Convert a digit to an integer. Simple helper function. Name comes
+ * from std::stoi()
  * @param  digit  the digit to convert
  * @return          integer value of digit
  */
@@ -63,7 +62,8 @@ int dtoi(udigit_t digit){
 }
 
 /**
- * Convert a integer to a digit. Simple helper function.
+ * Convert a integer to a digit. Simple helper function. Name comes
+ * from std::stoi()
  * @param  digit the digit to convert
  * @pre    int must be at least 0 and at most 9
  * @return          digit with value of integer
@@ -95,19 +95,20 @@ udigit_t itod(int digit){
  *                         to represent whether or not there is a carry
  *                         involved
  */
-
 pair<bool, udigit_t> add_digit(udigit_t first_digit,
    udigit_t second_digit, bool carry){
 
    DEBUGF('+', "first digit: " << first_digit);
    DEBUGF('+', "second digit: " << second_digit);
 
+   // converting the digits to ints
    int first_i = dtoi(first_digit);
    int second_i = dtoi(second_digit);
 
    DEBUGF('+', "converted first digit: " << first_i);
    DEBUGF('+', "converted second digit: " << second_i);
 
+   // doing the actual addition
    int ret = first_digit + second_digit;
 
    // carrying over if applicable
@@ -124,6 +125,39 @@ pair<bool, udigit_t> add_digit(udigit_t first_digit,
    return make_pair(false, ret_digit);
 }
 
+/**
+ *	Helper function that subtracts the second digit from the first.
+ *	Works in a similar fashion to add_digit(), however does subtraction
+ */
+pair<bool, udigit_t> sub_digit(udigit_t first_digit,
+   udigit_t second_digit, bool carry){
+
+   DEBUGF('+', "first digit: " << first_digit);
+   DEBUGF('+', "second digit: " << second_digit);
+
+   // converting the digits to ints
+   int first_i = dtoi(first_digit);
+   int second_i = dtoi(second_digit);
+
+   DEBUGF('+', "converted first digit: " << first_i);
+   DEBUGF('+', "converted second digit: " << second_i);
+
+   // doing the actual subtraction
+   int ret = first_digit - second_digit;
+
+   // checking if the carry from the last digit happened
+   if (carry) ret--;
+
+   // if ret is less than zero, carry over, and return true to indicate
+   // that a carry did happen
+   if (ret < 0){
+      ret = ret + 10;
+      udigit_t ret_digit = itod(ret);
+      return make_pair(true, ret_digit);
+   }
+   udigit_t ret_digit = itod(ret);
+   return make_pair(false, ret_digit);
+}
 ////////////////
 // OPERATORS  //
 ////////////////
@@ -136,7 +170,7 @@ ubigint ubigint::operator+ (const ubigint& that) const {
 
 
    // find the larger one and the smaller one
-   if (ubig_value.size() > that.ubig_value.size()){
+   if (*this < that){
       larger = that.ubig_value;
       smaller = ubig_value;
    } else {
@@ -204,7 +238,67 @@ ubigint ubigint::operator+ (const ubigint& that) const {
 
 ubigint ubigint::operator- (const ubigint& that) const {
    if (*this < that) throw domain_error ("ubigint::operator-(a<b)");
-   return ubigint (uvalue - that.uvalue);
+
+   // declaration of variables similar to + operator, but the larger
+   // one is already known so we can assign them immediately.
+   // note: these references are mostly used for code readability
+   ubigvalue_t larger = ubig_value;
+   ubigvalue_t smaller= that.ubig_value;
+   ubigvalue_t ret;
+
+   // iterators for the vectors
+   auto small_it = smaller.begin();
+   auto large_it = larger.begin();
+
+   // a boolean to know if we have carried. False for the first
+   // iteration
+   bool carry = false;
+
+   // iterate over all the vectors, adding them together. Finished when
+   // we get to the smaller one.
+   while (small_it != smaller.end()){
+      // pair declaration for the result
+      pair<bool, udigit_t> result;
+
+      // handoff to helper function for ease of code readability
+      result = sub_digit(*small_it, *large_it, carry);
+
+      // update carry from the result.
+      carry = result.first;
+
+      // push the digit to the back of the return
+      ret.push_back(result.second);
+
+      small_it++;
+      large_it++;
+   }
+
+   // fill in the rest of the larger digit
+   while (large_it != larger.end()){
+      // reference to make
+      udigit_t curr = *large_it;
+
+      // carries can still happen from the last subtraction, ex 500 - 1
+      if (carry){
+         // add one to the current digit
+         pair<bool, udigit_t> tmp = add_digit(curr, '1', false);
+
+         // set carry to the new value
+         carry = tmp.first;
+         curr = tmp.second;
+      }
+
+      // push it to the larger one
+      ret.push_back(curr);
+
+   }
+
+   // if after all that iteration we still have a carry, push a 1 onto
+   // the end of the vector
+   if (carry){
+
+   }
+
 }
 
 ubigint ubigint::operator* (const ubigint& that) const {
