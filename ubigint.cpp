@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string> // needed for string manipulation
 #include <sstream> // needed to stream strings
+#include <algorithm> // equal method used elsewhere
 using namespace std;
 using udigit_t = unsigned char;
 
@@ -158,6 +159,7 @@ pair<bool, udigit_t> sub_digit(udigit_t first_digit,
    udigit_t ret_digit = itod(ret);
    return make_pair(false, ret_digit);
 }
+
 ////////////////
 // OPERATORS  //
 ////////////////
@@ -307,20 +309,76 @@ ubigint ubigint::operator- (const ubigint& that) const {
 }
 
 ubigint ubigint::operator* (const ubigint& that) const {
-   return ubigint (uvalue * that.uvalue);
+   // my horribly inefficient multiplier
+   // Schönhage and Strassen would weep
+
+   // counter that counts how many times we've doubled
+   ubigint binary_count = 1;
+   // temporary ubigint to make it work
+   ubigint multiplier = that;
+
+   // double until it's larger than "that"
+   while (binary_count <= that){
+      binary_count.multiply_by_2();
+      multiplier.multiply_by_2();
+   }
+
+   // take it back to be below the number
+   binary_count.divide_by_2();
+   multiplier.divide_by_2();
+
+   // the vector of all the values to be added together
+   vector<ubigint> multipliers;
+
+   // temporary reference for the upcoming loop
+   ubigint tmp = *this;
+   // now everything is in place to use egyptian multiplication
+   // this is a bit confusing for me. So I got someone much smarter to
+   // explain it to me
+   //
+   // https://www.youtube.com/watch?v=xTOHkuYwQYw
+   while (that > 0){
+
+      if (binary_count <= tmp){
+         ubigint curr_value = multiplier;
+         multipliers.push_back(curr_value);
+      }
+
+      tmp.divide_by_2();
+      binary_count.divide_by_2();
+      multiplier.divide_by_2();
+   }
+
+   ubigint ret;
+
+   // iterate over multipliers, add them up and return them
+   for (auto it = multipliers.begin(); it != multipliers.end(); ++it){
+      ret = ret + *it;
+   }
+   return ret;
 }
 
 void ubigint::multiply_by_2() {
-   uvalue *= 2;
+
+   // make tempoarary ubigints for the doubling
+   ubigint tmp_one = ubigint(ubig_value);
+   ubigint tmp_two = ubigint(ubig_value);
+
+   // add it to itself using + operator
+   ubigint final = tmp_one + tmp_two;
+
+   // copy over from other one
+   // TODO: memory leak??? (I don't think so, this is on the stack)
+   ubig_value = final.ubig_value;
 }
 
 void ubigint::divide_by_2() {
-   uvalue /= 2;
+   //uvalue /= 2;
 }
 
-
+// WAT
 ubigint::quot_rem ubigint::divide (const ubigint& that) const {
-   static const ubigint zero = 0;
+   static const ubigint zero = 0; // updated constructor to use this
    if (that == zero) throw domain_error ("ubigint::divide: by 0");
    ubigint power_of_2 = 1;
    ubigint divisor = that; // right operand, divisor
@@ -352,18 +410,17 @@ ubigint ubigint::operator% (const ubigint& that) const {
 bool ubigint::operator== (const ubigint& that) const {
 
    // check the obvious case
-   if (ubigvalue.size() != that.ubigvalue.size()) return false;
-
+   if (ubig_value.size() != that.ubig_value.size()) return false;
 
    // iterate down the vectors and return false if any isnt the same
 
-   equal(ubigvalue.begin(), ubigvalue.end(), that.ubigvalue, )
+   auto this_it = ubig_value.begin();
+   auto that_it = that.ubig_value.begin();
 
-   auto this_it = ubigvalue.begin();
-   auto that_it = that.ubigvalue.begin();
+   while (this_it != ubig_value.end()
+      && that_it != that.ubig_value.end()){
 
-   while (this_it != ubigvalue.end()
-      && that_it != that.ubigvalue.end()){
+      if (*this_it != *that_it) return false;
 
       ++that_it;
       ++this_it;
@@ -378,17 +435,16 @@ bool ubigint::operator!= (const ubigint& that) const {
 }
 
 bool ubigint::operator< (const ubigint& that) const {
-   return uvalue < that.uvalue;
 
-   DEBUGF ('<', "this size: " << ubigvalue.size());
-   DEBUGF ('<', "that size: " << that.ubigvalue.size());
+   DEBUGF ('<', "this size: " << ubig_value.size());
+   DEBUGF ('<', "that size: " << that.ubig_value.size());
 
-   DEBUGF ('>', "this size: " << ubigvalue.size());
-   DEBUGF ('>', "that size: " << that.ubigvalue.size());
+   DEBUGF ('>', "this size: " << ubig_value.size());
+   DEBUGF ('>', "that size: " << that.ubig_value.size());
 
    // check the obvious cases first
-   if (ubigvalue.size() < that.ubigvalue.size()) return true;
-   if (ubigvalue.size() > that.ubigvalue.size()) return false;
+   if (ubig_value.size() < that.ubig_value.size()) return true;
+   if (ubig_value.size() > that.ubig_value.size()) return false;
 
    // They're now guaranteed to be the same size, so we should just
    // check to see which one is the larger one
@@ -396,10 +452,10 @@ bool ubigint::operator< (const ubigint& that) const {
    // iterate over them backwards so we can check most significant
    // digit first
 
-   auto this_it = ubigvalue.rbegin();
-   auto that_it = that.ubigvalue.rbegin();
+   auto this_it = ubig_value.rbegin();
+   auto that_it = that.ubig_value.rbegin();
 
-   while (this_it != ubigvalue.rend()){
+   while (this_it != ubig_value.rend()){
 
       if (*this_it < *that_it) return true;
 
@@ -427,7 +483,12 @@ bool ubigint::operator>= (const ubigint& that) const {
 }
 
 ostream& operator<< (ostream& out, const ubigint& that) {
-   return out << "ubigint(" << that.uvalue << ")";
+
+   // make a return string
+   string ret(that.ubig_value.begin(), that.ubig_value.end());
+
+   // send it away!
+   return out << ret;
 }
 
 /**
