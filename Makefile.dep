@@ -1,6 +1,6 @@
-# Makefile.dep created Wed Jul 15 01:58:34 CEST 2015
+# Makefile.dep created Fri Jul 17 12:34:48 CEST 2015
 bigint.o: bigint.cpp bigint.h debug.h relops.h ubigint.h
-ubigint.o: ubigint.cpp ubigint.h debug.h relops.h
+ubigint.o: ubigint.cpp ubigint.h debug.h relops.h general.h
 libfns.o: libfns.cpp libfns.h bigint.h debug.h relops.h ubigint.h
 scanner.o: scanner.cpp scanner.h debug.h
 debug.o: debug.cpp debug.h general.h

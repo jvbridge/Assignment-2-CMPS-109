@@ -59,7 +59,10 @@ ubigint::ubigint(ubigvalue_t that): ubig_value(that){}
  * @return          integer value of digit
  */
 int dtoi(udigit_t digit){
-   return digit - 0;
+   int ret = digit - 48; // ascii code for 0 is 48
+   DEBUGF ('g', "Digit: " << digit);
+   DEBUGF ('g', "ret: " << ret);
+   return ret;
 }
 
 /**
@@ -71,12 +74,14 @@ int dtoi(udigit_t digit){
  */
 udigit_t itod(int digit){
 
+   DEBUGF ('g', "Digit: " + digit);
+
    // error handling
    if (digit < 0){
       throw ydc_exn("signed int in ubigint.cpp");
    }
    if (digit >= 10){
-      throw ydc_exn("int arg > 10");
+      throw ydc_exn("int arg > 10: " + digit);
    }
    // actual conversion
    return '0' + digit;
@@ -170,12 +175,20 @@ ubigint ubigint::operator+ (const ubigint& that) const {
    ubigvalue_t smaller; // reference to the smaller ubig value
    ubigvalue_t ret; // return reference
 
+   DEBUGF('+', "lvalue: " << *this);
+   DEBUGF('+', "rvalue: " << that);
 
    // find the larger one and the smaller one
    if (*this < that){
+
+      DEBUGF('+', "rvalue is bigger!");
+
       larger = that.ubig_value;
       smaller = ubig_value;
    } else {
+
+      DEBUGF('+', "lvalue is bigger!");
+
       larger = ubig_value;
       smaller = that.ubig_value;
    }
@@ -484,11 +497,14 @@ bool ubigint::operator>= (const ubigint& that) const {
 
 ostream& operator<< (ostream& out, const ubigint& that) {
 
-   // make a return string
-   string ret(that.ubig_value.begin(), that.ubig_value.end());
-
+   // iterate over and send it out
+   for (auto it = that.ubig_value.rbegin();
+      it != that.ubig_value.rend();
+      it++){
+      out<< *it;
+   }
    // send it away!
-   return out << ret;
+   return out;
 }
 
 /**
