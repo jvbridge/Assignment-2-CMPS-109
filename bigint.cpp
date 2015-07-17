@@ -11,8 +11,16 @@ using namespace std;
 #include "relops.h"
 
 // Constructor using a long
-bigint::bigint (long that): uvalue (that), is_negative (that < 0) {
-   DEBUGF ('~', this << " -> " << uvalue)
+bigint::bigint (long that): is_negative (that < 0) {
+   ubigint tmp;
+   if (is_negative) {
+      tmp = ubigint(that * (-1));
+   } else {
+      tmp = ubigint(that);
+   }
+   this->uvalue = tmp;
+
+   DEBUGF ('~', this << " -> " << uvalue);
 }
 
 // Constructor using a ubigint and a value
@@ -128,8 +136,7 @@ bool bigint::operator< (const bigint& that) const {
 // overloaded operator to print out bigint properly
 ostream& operator<< (ostream& out, const bigint& that) {
    // check if it's negative, then add the container
-   return out << "bigint(" << (that.is_negative ? "'-'" : "'+'")
-              << that.uvalue << ")";
+   return out << (that.is_negative ? "-" : "") << that.uvalue;
 }
 
 

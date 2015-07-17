@@ -229,8 +229,6 @@ ubigint ubigint::operator+ (const ubigint& that) const {
       large_it++;
    }
 
-   int loop_control = 200;
-
    // fill in the rest of the larger digit
    while (large_it != larger.end()){
       // reference to make
@@ -246,10 +244,7 @@ ubigint ubigint::operator+ (const ubigint& that) const {
          curr = tmp.second;
       }
 
-      loop_control--;
-      if (loop_control == 0) break;
       // push it to the larger one
-
       ret.push_back(curr);
       ++large_it;
    }
@@ -406,7 +401,11 @@ void ubigint::multiply_by_2() {
 }
 
 void ubigint::divide_by_2() {
-   //uvalue /= 2;
+
+   // oh god this is unholy. I'm sorry
+   ubigint multiplier = 1;
+   // ubig_value = prev.ubig_value;
+
 }
 
 // WAT
