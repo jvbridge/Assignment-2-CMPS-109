@@ -23,7 +23,6 @@ class ubigint {
       void multiply_by_2();
       void divide_by_2();
 
-      
    public:
 
       ubigint() = default; // Need default ctor as well.
@@ -39,6 +38,15 @@ class ubigint {
 
       bool operator== (const ubigint&) const;
       bool operator<  (const ubigint&) const;
+
+      //////////////////
+      // my operators //
+      //////////////////
+
+      bool operator!= (const ubigint&) const;
+      bool operator<= (const ubigint&) const;
+      bool operator>  (const ubigint&) const;
+      bool operator>= (const ubigint&) const;
 
       //////////////////
       // my functions //

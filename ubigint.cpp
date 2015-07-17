@@ -242,8 +242,8 @@ ubigint ubigint::operator- (const ubigint& that) const {
    // declaration of variables similar to + operator, but the larger
    // one is already known so we can assign them immediately.
    // note: these references are mostly used for code readability
-   ubigvalue_t larger = ubig_value;
-   ubigvalue_t smaller= that.ubig_value;
+   ubigvalue_t larger  = ubig_value;
+   ubigvalue_t smaller = that.ubig_value;
    ubigvalue_t ret;
 
    // iterators for the vectors
@@ -254,8 +254,8 @@ ubigint ubigint::operator- (const ubigint& that) const {
    // iteration
    bool carry = false;
 
-   // iterate over all the vectors, adding them together. Finished when
-   // we get to the smaller one.
+   // iterate over all the vectors, subtracting them. Finished when  we
+   // get to the smaller one.
    while (small_it != smaller.end()){
       // pair declaration for the result
       pair<bool, udigit_t> result;
@@ -293,11 +293,16 @@ ubigint ubigint::operator- (const ubigint& that) const {
 
    }
 
-   // if after all that iteration we still have a carry, push a 1 onto
-   // the end of the vector
-   if (carry){
-
+   // after this point we should be done, we should check to see if we
+   // have any trailing zeros. This has the side effect of making it so
+   // that zero is the empty vector
+   for (auto it = ret.rbegin(); it != ret.rend(); it++){
+      int curr = dtoi(*it);
+      if (curr != 0) break;
+      ret.pop_back();
    }
+
+   return ret;
 
 }
 
@@ -345,11 +350,80 @@ ubigint ubigint::operator% (const ubigint& that) const {
 }
 
 bool ubigint::operator== (const ubigint& that) const {
-   return uvalue == that.uvalue;
+
+   // check the obvious case
+   if (ubigvalue.size() != that.ubigvalue.size()) return false;
+
+
+   // iterate down the vectors and return false if any isnt the same
+
+   equal(ubigvalue.begin(), ubigvalue.end(), that.ubigvalue, )
+
+   auto this_it = ubigvalue.begin();
+   auto that_it = that.ubigvalue.begin();
+
+   while (this_it != ubigvalue.end()
+      && that_it != that.ubigvalue.end()){
+
+      ++that_it;
+      ++this_it;
+   }
+
+   return true;
+}
+
+bool ubigint::operator!= (const ubigint& that) const {
+   // pretty easy, just the opposite of the normal one
+   return !(*this == that);
 }
 
 bool ubigint::operator< (const ubigint& that) const {
    return uvalue < that.uvalue;
+
+   DEBUGF ('<', "this size: " << ubigvalue.size());
+   DEBUGF ('<', "that size: " << that.ubigvalue.size());
+
+   DEBUGF ('>', "this size: " << ubigvalue.size());
+   DEBUGF ('>', "that size: " << that.ubigvalue.size());
+
+   // check the obvious cases first
+   if (ubigvalue.size() < that.ubigvalue.size()) return true;
+   if (ubigvalue.size() > that.ubigvalue.size()) return false;
+
+   // They're now guaranteed to be the same size, so we should just
+   // check to see which one is the larger one
+
+   // iterate over them backwards so we can check most significant
+   // digit first
+
+   auto this_it = ubigvalue.rbegin();
+   auto that_it = that.ubigvalue.rbegin();
+
+   while (this_it != ubigvalue.rend()){
+
+      if (*this_it < *that_it) return true;
+
+      ++this_it;
+      ++that_it;
+   }
+   // passed all tests
+   return false;
+
+}
+
+bool ubigint::operator<= (const ubigint& that) const {
+   // solved with simple logic
+   return !(that < *this);
+}
+
+bool ubigint::operator> (const ubigint& that) const {
+   // just flip the sign
+   return that < *this;
+}
+
+bool ubigint::operator>= (const ubigint& that) const {
+   // same as <= just in reverse
+   return !(*this < that);
 }
 
 ostream& operator<< (ostream& out, const ubigint& that) {
